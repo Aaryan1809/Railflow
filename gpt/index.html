@@ -26,10 +26,10 @@
                             <div class="subheading">
                                 <span class="badge">
                                     <span class="badge-dot"></span>
-                                    Real-time decision-support prototype
+                                    Real-time decision support
                                 </span>
                                 <span class="badge">
-                                    Section controller view · Beta
+                                    Section controller view
                                 </span>
                             </div>
                         </div>
@@ -46,50 +46,142 @@
                 </div>
             </div>
 
-            <!-- NOTE: Track visualization removed on purpose (jittery / misleading) -->
+            <!-- Section Overview (static strip instead of jittery visualizer) -->
+            <div class="section-overview">
+                <div class="section-line">
+                    <div class="section-node active">
+                        <div class="section-dot"></div>
+                        <span class="section-label">Nadiad</span>
+                    </div>
+                    <div class="section-connector"></div>
+                    <div class="section-node">
+                        <div class="section-dot"></div>
+                        <span class="section-label">Kanjari</span>
+                    </div>
+                    <div class="section-connector"></div>
+                    <div class="section-node">
+                        <div class="section-dot"></div>
+                        <span class="section-label">Uttarsanda</span>
+                    </div>
+                    <div class="section-connector"></div>
+                    <div class="section-node">
+                        <div class="section-dot"></div>
+                        <span class="section-label">Ode</span>
+                    </div>
+                    <div class="section-connector"></div>
+                    <div class="section-node">
+                        <div class="section-dot"></div>
+                        <span class="section-label">Anand</span>
+                    </div>
+                </div>
+                <div class="section-overview-metrics">
+                    <div class="section-pill">
+                        <span id="overview-active-trains">12</span> active trains
+                    </div>
+                    <div class="section-pill">
+                        <span id="overview-conflicts">0</span> conflicts
+                    </div>
+                    <div class="section-pill">
+                        Mode: <span id="overview-mode">Simulation</span>
+                    </div>
+                </div>
+            </div>
 
-            <!-- Panels Layout -->
-            <div class="panels">
-                <!-- Left side: KPIs + Priority Editor + Scenarios -->
-                <div class="panels-left">
+            <!-- Hero: AI Recommendations (full-width) -->
+            <div class="panel panel-hero">
+                <div class="panel-title-row">
+                    <div>
+                        <h3 class="panel-title">AI Optimization Recommendations</h3>
+                        <div class="panel-subtitle">
+                            Top actions for precedence, crossings, and holds
+                        </div>
+                    </div>
+                    <div class="hero-summary">
+                        <div class="hero-summary-item">
+                            <span class="hero-label">Conflicts</span>
+                            <span class="hero-value" id="hero-conflicts">0</span>
+                        </div>
+                        <div class="hero-summary-item">
+                            <span class="hero-label">Avg Delay</span>
+                            <span class="hero-value" id="hero-delay">0.0 min</span>
+                        </div>
+                        <div class="hero-summary-item">
+                            <span class="hero-label">On-Time</span>
+                            <span class="hero-value" id="hero-punctuality">0%</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="recommendations-container" class="hero-recommendations">
+                    <p>Loading AI analysis...</p>
+                </div>
+            </div>
+
+            <!-- Row 1: KPIs + Priority (left) | Roster (right) -->
+            <div class="layout-row">
+                <div class="layout-col layout-col-2">
                     <!-- KPIs -->
-                    <div class="panel">
+                    <div class="panel panel-kpi">
                         <div class="panel-title-row">
                             <div>
                                 <h3 class="panel-title">Key Performance Indicators</h3>
-                                <div class="panel-subtitle">Section-level efficiency and punctuality</div>
+                                <div class="panel-subtitle">Section snapshot</div>
                             </div>
                         </div>
                         <div class="kpi-grid">
                             <div class="kpi-card">
-                                <div class="kpi-label">Trains / Hour</div>
-                                <div class="kpi-value" id="kpi-throughput">0</div>
-                                <div class="kpi-trend">
-                                    <span class="kpi-pill">
-                                        <span class="kpi-pill-dot"></span>
-                                        Live estimate
-                                    </span>
+                                <div class="kpi-header-row">
+                                    <div class="kpi-label">Trains / hour</div>
+                                </div>
+                                <div class="kpi-main">
+                                    <div class="kpi-value" id="kpi-throughput">0</div>
+                                </div>
+                                <div class="kpi-bar">
+                                    <div class="kpi-bar-fill" id="kpi-throughput-bar"></div>
                                 </div>
                             </div>
                             <div class="kpi-card">
-                                <div class="kpi-label">Average Delay (min)</div>
-                                <div class="kpi-value" id="kpi-delay">0.0</div>
-                                <div class="kpi-trend">Weighted across all active trains</div>
+                                <div class="kpi-header-row">
+                                    <div class="kpi-label">Avg delay (min)</div>
+                                </div>
+                                <div class="kpi-main">
+                                    <div class="kpi-value" id="kpi-delay">0.0</div>
+                                </div>
+                                <div class="kpi-bar">
+                                    <div class="kpi-bar-fill" id="kpi-delay-bar"></div>
+                                </div>
                             </div>
                             <div class="kpi-card">
-                                <div class="kpi-label">Track Utilization</div>
-                                <div class="kpi-value" id="kpi-utilization">0%</div>
-                                <div class="kpi-trend">Running vs. halted / waiting</div>
+                                <div class="kpi-header-row">
+                                    <div class="kpi-label">Track utilization</div>
+                                </div>
+                                <div class="kpi-main">
+                                    <div class="kpi-value" id="kpi-utilization">0%</div>
+                                </div>
+                                <div class="kpi-bar">
+                                    <div class="kpi-bar-fill" id="kpi-utilization-bar"></div>
+                                </div>
                             </div>
                             <div class="kpi-card">
-                                <div class="kpi-label">Active Conflicts</div>
-                                <div class="kpi-value" id="kpi-conflicts">0</div>
-                                <div class="kpi-trend">Head-on / blocking conflicts</div>
+                                <div class="kpi-header-row">
+                                    <div class="kpi-label">Conflicts</div>
+                                </div>
+                                <div class="kpi-main">
+                                    <div class="kpi-value" id="kpi-conflicts">0</div>
+                                </div>
+                                <div class="kpi-bar">
+                                    <div class="kpi-bar-fill" id="kpi-conflicts-bar"></div>
+                                </div>
                             </div>
                             <div class="kpi-card">
-                                <div class="kpi-label">On-Time Trains (≤ 5 min)</div>
-                                <div class="kpi-value" id="kpi-punctuality">0%</div>
-                                <div class="kpi-trend">Service punctuality snapshot</div>
+                                <div class="kpi-header-row">
+                                    <div class="kpi-label">On-time (≤ 5 min)</div>
+                                </div>
+                                <div class="kpi-main">
+                                    <div class="kpi-value" id="kpi-punctuality">0%</div>
+                                </div>
+                                <div class="kpi-bar">
+                                    <div class="kpi-bar-fill" id="kpi-punctuality-bar"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -98,14 +190,14 @@
                     <div class="panel">
                         <div class="panel-title-row">
                             <div>
-                                <h3 class="panel-title">Priority Rule Editor</h3>
-                                <div class="panel-subtitle">Adjust how AI values train types and delay</div>
+                                <h3 class="panel-title">Priority Rules</h3>
+                                <div class="panel-subtitle">Tune AI decision weights</div>
                             </div>
                         </div>
                         <div id="priority-editor">
                             <div class="rule-row">
                                 <div class="rule-label-group">
-                                    <span class="rule-label">Express base priority</span>
+                                    <span class="rule-label">Express weight</span>
                                     <span class="rule-value" id="rule-express-value">3</span>
                                 </div>
                                 <input type="range" id="rule-express" class="rule-input" min="1" max="5" step="1"
@@ -113,7 +205,7 @@
                             </div>
                             <div class="rule-row">
                                 <div class="rule-label-group">
-                                    <span class="rule-label">Passenger base priority</span>
+                                    <span class="rule-label">Passenger weight</span>
                                     <span class="rule-value" id="rule-passenger-value">2</span>
                                 </div>
                                 <input type="range" id="rule-passenger" class="rule-input" min="1" max="5" step="1"
@@ -121,7 +213,7 @@
                             </div>
                             <div class="rule-row">
                                 <div class="rule-label-group">
-                                    <span class="rule-label">Freight base priority</span>
+                                    <span class="rule-label">Freight weight</span>
                                     <span class="rule-value" id="rule-freight-value">1</span>
                                 </div>
                                 <input type="range" id="rule-freight" class="rule-input" min="1" max="5" step="1"
@@ -129,60 +221,26 @@
                             </div>
                             <div class="rule-row">
                                 <div class="rule-label-group">
-                                    <span class="rule-label">Delay sensitivity (per min)</span>
+                                    <span class="rule-label">Delay weight / min</span>
                                     <span class="rule-value" id="rule-delay-value">0.10</span>
                                 </div>
                                 <input type="range" id="rule-delay" class="rule-input" min="0" max="0.5" step="0.05"
                                     value="0.1">
                             </div>
                             <p class="rule-hint">
-                                The AI compares a composite score: <strong>base priority + (delay × sensitivity)</strong>
-                                while deciding precedence and crossings.
+                                Higher weight ⇒ higher precedence when resolving conflicts.
                             </p>
-                        </div>
-                    </div>
-
-                    <!-- Disruptions -->
-                    <div class="panel">
-                        <div class="panel-title-row">
-                            <div>
-                                <h3 class="panel-title">Disruptions & What-If Scenarios</h3>
-                                <div class="panel-subtitle">Stress-test section and see AI reaction</div>
-                            </div>
-                        </div>
-                        <div id="scenario-controls">
-                            <p>Apply a disruption and let the optimization engine re-balance precedence and crossings.</p>
-                            <div class="scenario-grid">
-                                <button data-scenario="heavy-fog">Heavy fog on Up Express</button>
-                                <button data-scenario="signal-failure-ode">Signal failure near Ode</button>
-                                <button data-scenario="maintenance-uttarsanda">Maintenance block near Uttarsanda</button>
-                                <button data-scenario="clear-all">Clear all disruptions</button>
-                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right side: Recommendations + Roster + System + Log -->
-                <div class="panels-right">
-                    <!-- AI Recommendations -->
-                    <div class="panel">
-                        <div class="panel-title-row">
-                            <div>
-                                <h3 class="panel-title">AI Optimization Recommendations</h3>
-                                <div class="panel-subtitle">Precedence, crossings and holding strategies</div>
-                            </div>
-                        </div>
-                        <div id="recommendations-container">
-                            <p>Loading AI analysis...</p>
-                        </div>
-                    </div>
-
-                    <!-- Train Roster -->
-                    <div class="panel">
+                <!-- Train Roster -->
+                <div class="layout-col layout-col-2">
+                    <div class="panel panel-roster">
                         <div class="panel-title-row">
                             <div>
                                 <h3 class="panel-title">Train Roster</h3>
-                                <div class="panel-subtitle">Live view of all trains in section</div>
+                                <div class="panel-subtitle">All trains in this section</div>
                             </div>
                         </div>
                         <div class="roster-controls">
@@ -225,51 +283,66 @@
                             </table>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <!-- System & Data Feeds -->
+            <!-- Row 2: Log (left) | System + Scenarios (right) -->
+            <div class="layout-row">
+                <div class="layout-col layout-col-2">
                     <div class="panel">
                         <div class="panel-title-row">
                             <div>
-                                <h3 class="panel-title">System & Data Feeds (Mock Integration)</h3>
-                                <div class="panel-subtitle">Interfaces to signalling, TMS and rolling stock</div>
-                            </div>
-                        </div>
-                        <div class="system-status-list">
-                            <div class="system-status-item">
-                                <span>Signalling / Block Section Feed</span>
-                                <span class="status-pill status-simulated">Simulated</span>
-                            </div>
-                            <div class="system-status-item">
-                                <span>TMS / Timetable & Coach Links</span>
-                                <span class="status-pill status-simulated">Simulated</span>
-                            </div>
-                            <div class="system-status-item">
-                                <span>Rolling Stock & Loco Status</span>
-                                <span class="status-pill status-warning">Placeholder</span>
-                            </div>
-                            <div class="system-status-item">
-                                <span>Optimization / AI Engine</span>
-                                <span class="status-pill status-ok">Online (Local Model)</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Event Log -->
-                    <div class="panel">
-                        <div class="panel-title-row">
-                            <div>
-                                <h3 class="panel-title">AI Event Log (Audit Trail)</h3>
-                                <div class="panel-subtitle">Traceable system + AI + operator actions</div>
+                                <h3 class="panel-title">Event Log</h3>
+                                <div class="panel-subtitle">AI + operator actions</div>
                             </div>
                         </div>
                         <div id="event-log-container" class="log-list"></div>
                     </div>
                 </div>
+
+                <div class="layout-col layout-col-2">
+                    <div class="panel">
+                        <div class="panel-title-row">
+                            <div>
+                                <h3 class="panel-title">System & Scenarios</h3>
+                                <div class="panel-subtitle">Data feeds and quick what-if</div>
+                            </div>
+                        </div>
+                        <div class="system-status-list">
+                            <div class="system-status-item">
+                                <span>Signalling</span>
+                                <span class="status-pill status-simulated">Simulated</span>
+                            </div>
+                            <div class="system-status-item">
+                                <span>TMS / Timetable</span>
+                                <span class="status-pill status-simulated">Simulated</span>
+                            </div>
+                            <div class="system-status-item">
+                                <span>Rolling Stock</span>
+                                <span class="status-pill status-warning">Placeholder</span>
+                            </div>
+                            <div class="system-status-item">
+                                <span>AI Engine</span>
+                                <span class="status-pill status-ok">Online</span>
+                            </div>
+                        </div>
+
+                        <div id="scenario-controls" class="scenario-block">
+                            <div class="scenario-title">Quick Scenarios</div>
+                            <div class="scenario-grid">
+                                <button data-scenario="heavy-fog">Heavy fog (Up express)</button>
+                                <button data-scenario="signal-failure-ode">Signal failure (Ode)</button>
+                                <button data-scenario="maintenance-uttarsanda">Maintenance (Uttarsanda)</button>
+                                <button data-scenario="clear-all">Clear all</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
         </div>
     </div>
 
-    <!-- Train detail popup removed with visualizer -->
     <script src="script.js"></script>
 </body>
 

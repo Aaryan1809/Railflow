@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KMRL AI Operations Command Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@0.292.0/dist/umd/lucide.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* KMRL-Inspired Dark Palette */
+    :root {
+      --background-dark: #0D1117; /* Deep Charcoal */
+      --primary-dark: #1A202C;    /* Slightly Lighter Card/Container Background */
+      --border-dark: #30363D;     /* Subtle Border */
+      --text-primary: #FFFFFF;    /* Pure White for Titles */
+      --text-secondary: #A0AEC0;  /* Light Grey for subtitles */
+      --accent-cyan: #00BFA5;     /* KMRL Aqua/Teal - New primary branding color */
+      --accent-green: #38A169;    /* Status Operational Green */
+      --accent-yellow: #ECC94B;    /* Status Maintenance Yellow */
+      --accent-blue: #4299E1;     /* Blue for Cleaning/Branding */
+      --accent-red: #E53E3E;      /* Critical Red */
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--background-dark);
+      color: var(--text-primary);
+    }
+    /* Custom glow effects for card statuses using the new palette */
+    .card-glow-green { box-shadow: 0 0 15px rgba(56, 161, 105, 0.4); }
+    .card-glow-yellow { box-shadow: 0 0 15px rgba(236, 201, 75, 0.4); }
+    .card-glow-blue { box-shadow: 0 0 15px rgba(66, 153, 225, 0.4); }
+
+    /* Custom scrollbar for better aesthetics in dark mode modals */
+    .modal-content::-webkit-scrollbar { width: 8px; }
+    .modal-content::-webkit-scrollbar-track { background: #222; border-radius: 10px; }
+    .modal-content::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 10px; }
+    .modal-content::-webkit-scrollbar-thumb:hover { background: #555; }
+
+    /* Ticker styles for continuous updates feed */
+    .ticker-wrap {
+        overflow: hidden;
+        background-color: rgba(0,0,0,0.2);
+        padding: 1rem 0;
+        border-top: 1px solid var(--border-dark);
+        border-bottom: 1px solid var(--border-dark);
+    }
+    .ticker {
+        display: inline-block;
+        white-space: nowrap;
+        animation: ticker 40s linear infinite;
+    }
+    .ticker-item {
+        display: inline-block;
+        padding: 0 2rem;
+        color: var(--text-secondary);
+    }
+    .ticker-item-icon {
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+    }
+    @keyframes ticker {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+  </style>
+</head>
+<body class="antialiased">
+
+  <header class="bg-primary-dark/90 backdrop-blur-sm border-b-4 border-accent-cyan sticky top-0 z-40 shadow-xl">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-4">
+        <svg class="w-10 h-10" style="color: var(--accent-cyan);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3.23018 5.74312C3.35198 4.74495 4.19515 4 5.20235 4H18.7977C19.8049 4 20.648 4.74495 20.7698 5.74312L21.933 15.7431C22.0911 17.0393 21.0827 18.204 19.782 18.204H18V20C18 20.5523 17.5523 21 17 21C16.4477 21 16 20.5523 16 20V18.204H8V20C8 20.5523 7.55228 21 7 21C6.44772 21 6 20.5523 6 20V18.204H4.21804C2.91732 18.204 1.90892 17.0393 2.06699 15.7431L3.23018 5.74312ZM5.43335 6L4.45318 14.2064C4.38029 14.8085 4.82137 15.3197 5.42628 15.3197H18.5738C19.1787 15.3197 19.6198 14.8085 19.5469 14.2064L18.5667 6H5.43335ZM8 8H16V10H8V8Z"></path></svg>
+        <h1 class="text-2xl font-extrabold text-text-primary uppercase tracking-wider">KMRL OPERATIONS</h1>
+      </div>
+      <div class="text-right">
+        <p class="text-sm text-text-secondary">Last AI Sync:</p>
+        <p id="lastUpdated" class="font-semibold text-text-primary">Initializing...</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="container mx-auto px-6 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 items-center gap-12">
+      <div>
+        <h2 class="text-5xl font-bold mb-4" style="color: var(--accent-cyan);">AI-Driven Fleet Command Center</h2>
+        <p class="text-lg text-text-secondary mb-6">Real-time monitoring and predictive maintenance for the entire KMRL fleet. All operational factors analyzed and optimized continuously.</p>
+        <button id="aiButton" onclick="runAiUpdate()" class="flex items-center space-x-2 font-bold py-3 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300 ease-in-out" style="background-color: var(--accent-cyan); color: var(--primary-dark);" onmouseover="this.style.opacity='0.9';" onmouseout="this.style.opacity='1';">
+          <svg id="aiIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          <span id="aiButtonText" class="font-extrabold">Force AI Sync</span>
+        </button>
+      </div>
+      <div class="grid grid-cols-3 gap-4">
+          <div class="bg-primary-dark border border-border-dark p-4 rounded-xl text-center transform -rotate-3 hover:rotate-0 transition-transform">
+              <p class="text-sm text-text-secondary">Operational</p>
+              <h3 class="text-4xl font-bold" style="color: var(--accent-green);" id="operationalCount">...</h3>
+          </div>
+          <div class="bg-primary-dark border border-border-dark p-4 rounded-xl text-center mt-6">
+              <p class="text-sm text-text-secondary">Maintenance</p>
+              <h3 class="text-4xl font-bold" style="color: var(--accent-yellow);" id="maintenanceCount">...</h3>
+          </div>
+          <div class="bg-primary-dark border border-border-dark p-4 rounded-xl text-center transform rotate-3 hover:rotate-0 transition-transform">
+              <p class="text-sm text-text-secondary">Critical Alerts</p>
+              <h3 class="text-4xl font-bold" style="color: var(--accent-red);" id="alertsCount">...</h3>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ticker-wrap mb-12">
+        <div class="ticker" id="ticker-content">
+             </div>
+    </div>
+
+
+  <main class="container mx-auto p-6">
+     <h3 class="text-3xl font-bold mb-8 text-center uppercase tracking-wider text-text-secondary">Fleet Grid</h3>
+    <div id="trainGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+      </div>
+  </main>
+
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm hidden items-center justify-center p-4 z-50 transition-opacity duration-300 opacity-0">
+    <div id="modal-box" class="modal-content bg-primary-dark border border-border-dark rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative transform scale-95 transition-transform duration-300">
+        </div>
+  </div>
+
+
+  <script>
+    // Utility function to dynamically create Lucide SVG icons
+    const createIcon = (name, options = {}) => {
+        const { color = 'currentColor', size = 20, className = '' } = options;
+        const iconNode = lucide.createElement(lucide[name]);
+        const svg = new XMLSerializer().serializeToString(iconNode);
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = svg;
+        const svgElement = wrapper.firstChild;
+        svgElement.setAttribute('stroke', color);
+        svgElement.setAttribute('width', size);
+        svgElement.setAttribute('height', size);
+        if (className) svgElement.classList.add(...className.split(' '));
+        return svgElement.outerHTML;
+    };
+
+    // Define train statuses and associated styling
+    const statuses = {
+        good: { label: "Operational", color: "green", icon: "CheckCircle", cardGlowClass: 'card-glow-green' },
+        clean: { label: "Needs Cleaning", color: "blue", icon: "Droplets", cardGlowClass: 'card-glow-blue' },
+        work: { label: "Maintenance", color: "yellow", icon: "Wrench", cardGlowClass: 'card-glow-yellow' }
+    };
+    
+    let trainData = [];
+
+    // --- DOM ELEMENT REFERENCES ---
+    const grid = document.getElementById('trainGrid');
+    const modal = document.getElementById('modal');
+    const modalBox = document.getElementById('modal-box');
+    const lastUpdatedEl = document.getElementById('lastUpdated');
+    const aiButton = document.getElementById('aiButton');
+    const aiButtonText = document.getElementById('aiButtonText');
+    const aiIcon = document.getElementById('aiIcon');
+    const operationalCountEl = document.getElementById('operationalCount');
+    const maintenanceCountEl = document.getElementById('maintenanceCount');
+    const alertsCountEl = document.getElementById('alertsCount');
+    const tickerContentEl = document.getElementById('ticker-content');
+    
+    // --- INITIAL DATA GENERATION ---
+    function generateInitialData() {
+        trainData = Array.from({ length: 25 }, (_, i) => {
+            const hasBranding = Math.random() < 0.2;
+            const openJobs = Math.floor(Math.random() * 4);
+            const initialMileage = Math.floor(5000 + Math.random() * 80000);
+            
+            // Standard check interval for this fleet is 90,000 km.
+            const CHECK_INTERVAL = 90000; 
+            // Calculate the next major check milestone based on current mileage
+            const milestoneMultiplier = Math.floor(initialMileage / CHECK_INTERVAL) + 1;
+            const nextMajorCheck = milestoneMultiplier * CHECK_INTERVAL;
+            
+            return {
+                id: "T" + String(i + 1).padStart(2, '0'),
+                name: "Metro Train " + (i + 1),
+                status: openJobs > 0 ? 'work' : ['good', 'good', 'good', 'clean'][Math.floor(Math.random() * 4)],
+                mileage: initialMileage,
+                efficiency: (85 + Math.random() * 15).toFixed(1),
+                incidents: Math.floor(Math.random() * 3),
+                certificates: {
+                    rollingStock: { status: 'Valid', expiry: new Date(Date.now() + (30 + Math.random() * 335) * 24 * 60 * 60 * 1000) },
+                    signalling: { status: 'Valid', expiry: new Date(Date.now() + (30 + Math.random() * 335) * 24 * 60 * 60 * 1000) },
+                    telecom: { status: 'Valid', expiry: new Date(Date.now() + (30 + Math.random() * 335) * 24 * 60 * 60 * 1000) },
+                },
+                jobCards: { open: openJobs, closed: Math.floor(Math.random() * 50), criticalJob: openJobs > 0 ? "HVAC Unit Inspection" : "None" },
+                branding: { isBranded: hasBranding, client: hasBranding ? ["BrandA", "BrandB", "BrandC"][Math.floor(Math.random() * 3)] : null, exposureMet: hasBranding ? Math.floor(Math.random() * 100) : 0 },
+                cleaning: { lastCleaned: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), nextScheduled: "Pending" },
+                stabling: { yard: ['A', 'B', 'C'][Math.floor(Math.random() * 3)], track: Math.ceil(Math.random() * 10) },
+                // NEW FIELD: Simulated AI Prediction for logistics and maintenance planning
+                aiPrediction: {
+                    returnTime: new Date(Date.now() + (Math.random() * 4 + 0.5) * 60 * 60 * 1000), // Return in 0.5 to 4.5 hours
+                    timeToMaintenance: Math.floor(5 + Math.random() * 100) // Days until next major check
+                },
+                // NEW FIELD: Stores the mileage milestone for the next major inspection
+                nextMajorCheckMileage: nextMajorCheck 
+            };
+        });
+    }
+
+    // --- CORE RENDERING FUNCTIONS ---
+    function updateDashboardCounts() {
+        // Count statuses based on current data
+        const operational = trainData.filter(t => t.status === 'good').length;
+        const maintenance = trainData.filter(t => t.status === 'work').length;
+        // Alerts include open jobs OR certificates expiring soon
+        const alerts = trainData.filter(t => t.jobCards.open > 0 || Object.values(t.certificates).some(c => c.status === 'Expires Soon')).length;
+        operationalCountEl.textContent = operational;
+        maintenanceCountEl.textContent = maintenance;
+        alertsCountEl.textContent = alerts;
+    }
+
+    function renderTrains() {
+        grid.innerHTML = "";
+        trainData.forEach(train => {
+            const statusInfo = statuses[train.status];
+            const card = document.createElement("div");
+            // Dynamic styling based on status, including glow effect on hover
+            card.className = `train-card bg-primary-dark rounded-xl border border-border-dark p-5 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:${statusInfo.cardGlowClass}`;
+            
+            card.innerHTML = `
+                <div class="relative">
+                    <div class="aspect-video rounded-lg mb-4 overflow-hidden">
+                        <img src="https://placehold.co/1920x1080/00BFA5/FFFFFF?text=KMRL+Train+Image" 
+                             alt="Kochi Metro Train" 
+                             class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                             onerror="this.src='https://placehold.co/1920x1080/1A202C/A0AEC0?text=Image+Unavailable';"
+                        >
+                    </div>
+                    <span class="absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded-full bg-${statusInfo.color}-500/20 text-${statusInfo.color}-300">${statusInfo.label}</span>
+                </div>
+                <h3 class="text-lg font-bold text-text-primary truncate">${train.name}</h3>
+                <p class="text-sm text-text-secondary font-medium mb-4">${train.id}</p>
+            `;
+            card.onclick = () => openModal(train);
+            grid.appendChild(card);
+        });
+    }
+    
+    // Simulates an AI sync operation, updating data and ticker
+    function runAiUpdate() {
+        // Disable button and show loading state
+        aiButton.disabled = true;
+        aiButtonText.textContent = 'Syncing...';
+        aiIcon.innerHTML = `<path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>`;
+        aiIcon.classList.add('animate-spin');
+        
+        const tickerItems = [];
+
+        // Simulate network/AI processing delay
+        setTimeout(() => {
+            trainData.forEach(t => {
+                t.mileage += Math.floor(Math.random() * 200);
+                
+                // Simulate various status changes and events
+                if (Math.random() < 0.1) {
+                    if (t.jobCards.open > 0 && Math.random() < 0.5) {
+                        t.jobCards.open--; t.jobCards.closed++;
+                        if (t.jobCards.open === 0) { t.status = 'good'; t.jobCards.criticalJob = "None"; }
+                        tickerItems.push({train: t.id, message: "Job card closed.", icon: 'FileCheck', color: 'text-green-400'});
+                    } else if (t.mileage > t.nextMajorCheckMileage - 5000 && t.status !== 'work') {
+                         // Check triggered when approaching major check mileage
+                         t.status = 'work';
+                         tickerItems.push({train: t.id, message: "High mileage maintenance triggered.", icon: 'Wrench', color: 'text-yellow-400'});
+                    } else if (t.status === 'good' && Math.random() < 0.2) {
+                         t.status = 'clean';
+                         tickerItems.push({train: t.id, message: "Scheduled for cleaning.", icon: 'Droplets', color: 'text-blue-400'});
+                    }
+                }
+                
+                // Check certificate expiry
+                Object.values(t.certificates).forEach(cert => {
+                    const daysToExpire = (cert.expiry - Date.now()) / (1000 * 3600 * 24);
+                    if (daysToExpire < 30 && cert.status === 'Valid') {
+                         cert.status = 'Expires Soon';
+                         tickerItems.push({train: t.id, message: `Certificate expires in ${Math.floor(daysToExpire)} days.`, icon: 'ShieldAlert', color: 'text-yellow-400'});
+                    }
+                });
+            });
+
+            // Update ticker content
+            let tickerHTML = '';
+            const allItems = [...tickerItems, ...tickerItems]; // Duplicate for seamless loop animation
+            allItems.forEach(item => {
+                tickerHTML += `<div class="ticker-item">${createIcon(item.icon, {className: `ticker-item-icon ${item.color}`})} <strong>${item.train}:</strong> ${item.message}</div>`;
+            });
+            tickerContentEl.innerHTML = tickerHTML;
+
+            // Render all updated elements
+            renderTrains();
+            updateDashboardCounts();
+            lastUpdatedEl.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+            // Restore button state
+            aiButton.disabled = false;
+            aiButtonText.textContent = 'Force AI Sync';
+            aiIcon.classList.remove('animate-spin');
+            aiIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>`;
+        }, 1500);
+    }
+    
+    // Opens the detailed modal view
+    function openModal(train) {
+        const statusInfo = statuses[train.status];
+        
+        const getCertStatusClass = (status) => status === 'Expires Soon' ? 'text-yellow-400' : 'text-green-400';
+        
+        const predictedReturnTime = train.aiPrediction.returnTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+        // Calculate the distance remaining for the next major check
+        const distanceRemaining = train.nextMajorCheckMileage - train.mileage;
+        const distanceRemainingText = distanceRemaining.toLocaleString() + ' km';
+        
+        // Define color style using CSS variables for high-mileage alert
+        const distanceColorStyle = distanceRemaining < 5000 ? 'color: var(--accent-red);' : 'color: var(--accent-cyan);';
+
+
+        modalBox.innerHTML = `
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-text-secondary hover:text-text-primary transition-colors z-10">
+                ${createIcon('X', { size: 28 })}
+            </button>
+            <div class="p-8">
+                <div class="border-b border-border-dark pb-4 mb-6 flex justify-between items-start">
+                    <div>
+                        <h2 class="text-4xl font-bold text-text-primary mb-1">${train.name}</h2>
+                        <p class="text-lg text-text-secondary font-mono">${train.id} &middot; <span class="text-${statusInfo.color}-400">${statusInfo.label}</span></p>
+                    </div>
+                    <div class="text-right p-3 bg-background-dark rounded-xl border border-border-dark shadow-lg">
+                        <p class="text-sm text-text-secondary">AI Predicted Return Time</p>
+                        <p class="text-xl font-bold" style="color: var(--accent-cyan);">${predictedReturnTime}</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 space-y-6">
+                        <h4 class="text-lg font-semibold text-text-primary border-b border-border-dark pb-2 flex items-center" style="color: var(--accent-cyan);">${createIcon('ShieldCheck', {className: 'mr-2', color: 'var(--accent-cyan)'})} 1. Fitness Certificates & Job Status</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-primary-dark rounded-xl border border-border-dark space-y-2 card-glow-green">
+                                <p class="font-bold text-text-primary flex items-center">${createIcon('Award', {className: 'mr-2 text-green-400'})} Validity Windows</p>
+                                ${Object.entries(train.certificates).map(([key, cert]) => `
+                                    <div class="flex justify-between items-center text-sm"><span class="text-text-secondary">${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span><span class="font-semibold ${getCertStatusClass(cert.status)}">${cert.status} &middot; ${cert.expiry.toLocaleDateString()}</span></div>`).join('')}
+                            </div>
+                            <div class="p-4 bg-primary-dark rounded-xl border border-border-dark space-y-2 card-glow-yellow">
+                                <p class="font-bold text-text-primary flex items-center">${createIcon('FileText', {className: 'mr-2 text-yellow-400'})} IBM Maximo Work Orders</p>
+                                <div class="flex justify-between items-center text-sm"><span class="text-text-secondary">Open Orders</span><span class="font-semibold text-red-400">${train.jobCards.open}</span></div>
+                                <div class="flex justify-between items-center text-sm"><span class="text-text-secondary">Closed Orders (YTD)</span><span class="font-semibold">${train.jobCards.closed}</span></div>
+                                <div class="flex justify-between items-center text-sm"><span class="text-text-secondary">Critical Job Card</span><span class="font-semibold text-red-300">${train.jobCards.criticalJob}</span></div>
+                            </div>
+                        </div>
+
+                        <h4 class="text-lg font-semibold text-text-primary border-b border-border-dark pb-2 pt-4 flex items-center" style="color: var(--accent-cyan);">${createIcon('Gauge', {className: 'mr-2', color: 'var(--accent-cyan)'})} 4. Mileage Balancing</h4>
+                        <div class="p-4 bg-primary-dark rounded-xl border border-border-dark space-y-2">
+                             <div class="flex justify-between items-center text-md"><span class="text-text-secondary">Current Mileage</span><span class="text-xl font-bold text-text-primary">${train.mileage.toLocaleString()} km</span></div>
+                             <div class="flex justify-between items-center text-sm"><span class="text-text-secondary">Operational Efficiency</span><span class="font-semibold">${train.efficiency}%</span></div>
+                             
+                             <div class="flex justify-between items-center text-md pt-2 border-t border-border-dark mt-2">
+                                <span class="text-text-secondary font-medium">Distance Before Next Check (${train.nextMajorCheckMileage.toLocaleString()} km Target)</span>
+                                <span class="text-xl font-bold" style="${distanceColorStyle}">${distanceRemainingText}</span>
+                             </div>
+
+                             <div class="flex justify-between items-center text-sm"><span class="text-text-secondary">Days to Scheduled Major Check (AI)</span><span class="font-semibold text-yellow-400">${train.aiPrediction.timeToMaintenance} days</span></div>
+                        </div>
+
+                    </div>
+
+                    <div class="space-y-6">
+                        <h4 class="text-lg font-semibold text-text-primary border-b border-border-dark pb-2 flex items-center" style="color: var(--accent-cyan);">${createIcon('ParkingCircle', {className: 'mr-2', color: 'var(--accent-cyan)'})} 6. Stabling Geometry (Night Parking Bay)</h4>
+                        <div class="p-4 bg-accent-blue/20 rounded-xl border border-accent-blue space-y-2 shadow-lg">
+                            <p class="text-sm font-medium text-text-secondary">Recommended Night Parking Bay</p>
+                            <p class="text-2xl font-extrabold" style="color: var(--accent-blue);">Yard ${train.stabling.yard}, Track ${train.stabling.track}</p>
+                            <p class="text-xs text-text-secondary">AI calculated to minimize nightly shunting and morning turn-out time.</p>
+                        </div>
+                        
+                        <h4 class="text-lg font-semibold text-text-primary border-b border-border-dark pb-2 flex items-center" style="color: var(--accent-cyan);">${createIcon('SprayCan', {className: 'mr-2', color: 'var(--accent-cyan)'})} 5. Cleaning & Detailing Slots</h4>
+                        <div class="p-4 bg-primary-dark rounded-xl border border-border-dark space-y-2">
+                            <div class="flex justify-between items-center text-sm"><span class="text-text-secondary">Last Deep Cleaned</span><span class="font-semibold">${train.cleaning.lastCleaned.toLocaleDateString()}</span></div>
+                            <div class="flex justify-between items-center text-sm"><span class="text-text-secondary">Next Scheduled Slot</span><span class="font-semibold text-blue-400">Available: 22:00 Bay 4</span></div>
+                            <div class="text-xs text-text-secondary mt-1">Based on bay occupancy and available manpower.</div>
+                        </div>
+
+                        <h4 class="text-lg font-semibold text-text-primary border-b border-border-dark pb-2 flex items-center" style="color: var(--accent-cyan);">${createIcon('Megaphone', {className: 'mr-2', color: 'var(--accent-cyan)'})} 3. Branding Priorities</h4>
+                        ${train.branding.isBranded ? `<div class="p-4 bg-primary-dark rounded-xl border border-border-dark space-y-2 card-glow-blue">
+                            <div class="flex justify-between items-center text-sm"><span class="text-text-secondary">Client Contract</span><span class="font-semibold">${train.branding.client}</span></div>
+                            <div class="flex justify-between items-center text-sm"><span class="text-text-secondary">Exposure Met (Target 100%)</span><span class="font-bold text-lg" style="color: var(--accent-blue);">${train.branding.exposureMet}%</span></div>
+                            <div class="text-xs text-text-secondary mt-1">Exposure hours tracked against contractual commitments.</div>
+                        </div>` : `<div class="p-4 bg-primary-dark rounded-xl border border-border-dark"><p class="text-sm text-text-secondary">Train is currently **unbranded** and available for commercial contracts.</p></div>`}
+                        
+                    </div>
+                </div>
+            </div>`;
+        
+        // Open modal with transition classes
+        modal.classList.remove('hidden');
+        modal.classList.add('flex', 'opacity-100');
+        setTimeout(() => { modalBox.classList.remove('scale-95'); }, 10);
+    }
+
+    // Closes the modal with a smooth transition
+    function closeModal() {
+        modal.classList.add('opacity-0');
+        modalBox.classList.add('scale-95');
+        setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex', 'opacity-100'); }, 300);
+    }
+
+    // --- INITIALIZATION & EVENT LISTENERS ---
+    document.addEventListener('DOMContentLoaded', () => {
+        generateInitialData();
+        runAiUpdate(); // Run once on load to populate everything
+        // Schedule periodic AI sync updates
+        setInterval(runAiUpdate, 20000); 
+    });
+
+    // Close modal on Escape key press
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+            closeModal();
+        }
+    });
+  </script>
+</body>
+</html>
