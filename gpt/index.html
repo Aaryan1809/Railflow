@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Railway Flow Optimization Dashboard</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="app-shell">
+        <div class="main-area">
+            <!-- Header -->
+            <div class="top-bar">
+                <div class="top-left">
+                    <div class="brand-row">
+                        <div class="brand-pill">RF</div>
+                        <div>
+                            <div class="section-name" id="current-section">
+                                RailFlow AI · Nadiad – Anand Section
+                            </div>
+                            <div class="subheading">
+                                <span class="badge">
+                                    <span class="badge-dot"></span>
+                                    Real-time decision-support prototype
+                                </span>
+                                <span class="badge">
+                                    Section controller view · Beta
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="datetime" id="datetime-display">Loading date and time...</div>
+                </div>
+                <div class="top-bar-actions">
+                    <button id="ai-simulate-btn">
+                        <span>AI-Driven Simulation</span>
+                    </button>
+                    <button id="reset-data-btn" class="secondary">
+                        Reset Scenario
+                    </button>
+                </div>
+            </div>
+
+            <!-- NOTE: Track visualization removed on purpose (jittery / misleading) -->
+
+            <!-- Panels Layout -->
+            <div class="panels">
+                <!-- Left side: KPIs + Priority Editor + Scenarios -->
+                <div class="panels-left">
+                    <!-- KPIs -->
+                    <div class="panel">
+                        <div class="panel-title-row">
+                            <div>
+                                <h3 class="panel-title">Key Performance Indicators</h3>
+                                <div class="panel-subtitle">Section-level efficiency and punctuality</div>
+                            </div>
+                        </div>
+                        <div class="kpi-grid">
+                            <div class="kpi-card">
+                                <div class="kpi-label">Trains / Hour</div>
+                                <div class="kpi-value" id="kpi-throughput">0</div>
+                                <div class="kpi-trend">
+                                    <span class="kpi-pill">
+                                        <span class="kpi-pill-dot"></span>
+                                        Live estimate
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">Average Delay (min)</div>
+                                <div class="kpi-value" id="kpi-delay">0.0</div>
+                                <div class="kpi-trend">Weighted across all active trains</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">Track Utilization</div>
+                                <div class="kpi-value" id="kpi-utilization">0%</div>
+                                <div class="kpi-trend">Running vs. halted / waiting</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">Active Conflicts</div>
+                                <div class="kpi-value" id="kpi-conflicts">0</div>
+                                <div class="kpi-trend">Head-on / blocking conflicts</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">On-Time Trains (≤ 5 min)</div>
+                                <div class="kpi-value" id="kpi-punctuality">0%</div>
+                                <div class="kpi-trend">Service punctuality snapshot</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Priority Rule Editor -->
+                    <div class="panel">
+                        <div class="panel-title-row">
+                            <div>
+                                <h3 class="panel-title">Priority Rule Editor</h3>
+                                <div class="panel-subtitle">Adjust how AI values train types and delay</div>
+                            </div>
+                        </div>
+                        <div id="priority-editor">
+                            <div class="rule-row">
+                                <div class="rule-label-group">
+                                    <span class="rule-label">Express base priority</span>
+                                    <span class="rule-value" id="rule-express-value">3</span>
+                                </div>
+                                <input type="range" id="rule-express" class="rule-input" min="1" max="5" step="1"
+                                    value="3">
+                            </div>
+                            <div class="rule-row">
+                                <div class="rule-label-group">
+                                    <span class="rule-label">Passenger base priority</span>
+                                    <span class="rule-value" id="rule-passenger-value">2</span>
+                                </div>
+                                <input type="range" id="rule-passenger" class="rule-input" min="1" max="5" step="1"
+                                    value="2">
+                            </div>
+                            <div class="rule-row">
+                                <div class="rule-label-group">
+                                    <span class="rule-label">Freight base priority</span>
+                                    <span class="rule-value" id="rule-freight-value">1</span>
+                                </div>
+                                <input type="range" id="rule-freight" class="rule-input" min="1" max="5" step="1"
+                                    value="1">
+                            </div>
+                            <div class="rule-row">
+                                <div class="rule-label-group">
+                                    <span class="rule-label">Delay sensitivity (per min)</span>
+                                    <span class="rule-value" id="rule-delay-value">0.10</span>
+                                </div>
+                                <input type="range" id="rule-delay" class="rule-input" min="0" max="0.5" step="0.05"
+                                    value="0.1">
+                            </div>
+                            <p class="rule-hint">
+                                The AI compares a composite score: <strong>base priority + (delay × sensitivity)</strong>
+                                while deciding precedence and crossings.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Disruptions -->
+                    <div class="panel">
+                        <div class="panel-title-row">
+                            <div>
+                                <h3 class="panel-title">Disruptions & What-If Scenarios</h3>
+                                <div class="panel-subtitle">Stress-test section and see AI reaction</div>
+                            </div>
+                        </div>
+                        <div id="scenario-controls">
+                            <p>Apply a disruption and let the optimization engine re-balance precedence and crossings.</p>
+                            <div class="scenario-grid">
+                                <button data-scenario="heavy-fog">Heavy fog on Up Express</button>
+                                <button data-scenario="signal-failure-ode">Signal failure near Ode</button>
+                                <button data-scenario="maintenance-uttarsanda">Maintenance block near Uttarsanda</button>
+                                <button data-scenario="clear-all">Clear all disruptions</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right side: Recommendations + Roster + System + Log -->
+                <div class="panels-right">
+                    <!-- AI Recommendations -->
+                    <div class="panel">
+                        <div class="panel-title-row">
+                            <div>
+                                <h3 class="panel-title">AI Optimization Recommendations</h3>
+                                <div class="panel-subtitle">Precedence, crossings and holding strategies</div>
+                            </div>
+                        </div>
+                        <div id="recommendations-container">
+                            <p>Loading AI analysis...</p>
+                        </div>
+                    </div>
+
+                    <!-- Train Roster -->
+                    <div class="panel">
+                        <div class="panel-title-row">
+                            <div>
+                                <h3 class="panel-title">Train Roster</h3>
+                                <div class="panel-subtitle">Live view of all trains in section</div>
+                            </div>
+                        </div>
+                        <div class="roster-controls">
+                            <input type="text" id="train-search-input" class="roster-search"
+                                placeholder="Search by train number or location...">
+                            <div class="roster-filters">
+                                <select id="filter-type" class="roster-select">
+                                    <option value="all">Type: All</option>
+                                    <option value="express">Express</option>
+                                    <option value="passenger">Passenger</option>
+                                    <option value="freight">Freight</option>
+                                </select>
+                                <select id="filter-direction" class="roster-select">
+                                    <option value="all">Direction: All</option>
+                                    <option value="up">Up (Nadiad → Anand)</option>
+                                    <option value="down">Down (Anand → Nadiad)</option>
+                                </select>
+                                <select id="filter-status" class="roster-select">
+                                    <option value="all">Status: All</option>
+                                    <option value="running">Running</option>
+                                    <option value="waiting">Waiting</option>
+                                    <option value="halted">Halted</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="roster-table-wrapper">
+                            <table class="roster-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="number">Train</th>
+                                        <th data-sort="type">Type</th>
+                                        <th data-sort="direction">Dir</th>
+                                        <th data-sort="status">Status</th>
+                                        <th data-sort="delayMinutes">Delay</th>
+                                        <th data-sort="position">Location</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="train-roster-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- System & Data Feeds -->
+                    <div class="panel">
+                        <div class="panel-title-row">
+                            <div>
+                                <h3 class="panel-title">System & Data Feeds (Mock Integration)</h3>
+                                <div class="panel-subtitle">Interfaces to signalling, TMS and rolling stock</div>
+                            </div>
+                        </div>
+                        <div class="system-status-list">
+                            <div class="system-status-item">
+                                <span>Signalling / Block Section Feed</span>
+                                <span class="status-pill status-simulated">Simulated</span>
+                            </div>
+                            <div class="system-status-item">
+                                <span>TMS / Timetable & Coach Links</span>
+                                <span class="status-pill status-simulated">Simulated</span>
+                            </div>
+                            <div class="system-status-item">
+                                <span>Rolling Stock & Loco Status</span>
+                                <span class="status-pill status-warning">Placeholder</span>
+                            </div>
+                            <div class="system-status-item">
+                                <span>Optimization / AI Engine</span>
+                                <span class="status-pill status-ok">Online (Local Model)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Log -->
+                    <div class="panel">
+                        <div class="panel-title-row">
+                            <div>
+                                <h3 class="panel-title">AI Event Log (Audit Trail)</h3>
+                                <div class="panel-subtitle">Traceable system + AI + operator actions</div>
+                            </div>
+                        </div>
+                        <div id="event-log-container" class="log-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Train detail popup removed with visualizer -->
+    <script src="script.js"></script>
+</body>
+
+</html>

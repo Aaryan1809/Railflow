@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>AI Railway Flow Optimization Dashboard</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+            rel="stylesheet">
+        <style>
+            /* Reset and Base Styles */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            :root {
+                --bg-dark: #0a1022;
+                --bg-card: #1a2234;
+                --bg-card-hover: #2a3348;
+                --text-primary: #f8fafc;
+                --text-secondary: #cbd5e1;
+                --accent-blue: #4f8df9;
+                --accent-green: #10b981;
+                --accent-red: #f43f5e;
+                --accent-yellow: #fbbf24;
+                --accent-purple: #a855f7;
+                --accent-teal: #14b8a6;
+                --shadow: 0 8px 16px -2px rgba(0, 0, 0, 0.3), 0 4px 8px -2px rgba(0, 0, 0, 0.2);
+                --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.15);
+                --border-radius: 12px;
+                --transition: all 0.3s ease;
+                --gradient-blue: linear-gradient(135deg, #4f8df9, #3b82f6);
+                --gradient-green: linear-gradient(135deg, #10b981, #059669);
+                --gradient-red: linear-gradient(135deg, #f43f5e, #e11d48);
+                --gradient-purple: linear-gradient(135deg, #a855f7, #9333ea);
+                --gradient-dark: linear-gradient(135deg, #1a2234, #0f172a);
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background-color: var(--bg-dark);
+                color: var(--text-primary);
+                line-height: 1.6;
+                overflow-x: hidden;
+            }
+
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                font-family: 'Poppins', sans-serif;
+                font-weight: 600;
+            }
+
+            button {
+                cursor: pointer;
+                font-family: 'Inter', sans-serif;
+                font-weight: 500;
+                border: none;
+                border-radius: 8px;
+                padding: 10px 16px;
+                background-color: var(--accent-blue);
+                color: white;
+                transition: var(--transition);
+            }
+
+            button:hover {
+                opacity: 0.9;
+                transform: translateY(-2px);
+            }
+
+            /* Full-Screen Layout Styles */
+            .container {
+                display: block;
+                min-height: 100vh;
+            }
+
+            /* Main Area Styles - Full Width */
+            .main-area {
+                width: 100%;
+                padding: 20px;
+            }
+
+            .top-bar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 16px;
+                background-color: var(--bg-card);
+                border-radius: var(--border-radius);
+                margin-bottom: 24px;
+                box-shadow: var(--shadow);
+            }
+
+            .section-name {
+                font-size: 1.4rem;
+                font-weight: 600;
+            }
+
+            .datetime {
+                color: var(--text-secondary);
+            }
+
+            .top-bar-actions {
+                display: flex;
+                gap: 12px;
+            }
+
+            .visualization {
+                background-color: var(--bg-card);
+                border-radius: var(--border-radius);
+                padding: 20px;
+                margin-bottom: 24px;
+                box-shadow: var(--shadow);
+                height: 350px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .visualization-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+
+            .visualization-controls {
+                display: flex;
+                gap: 8px;
+            }
+
+            .visualization-controls button {
+                width: 30px;
+                height: 30px;
+                padding: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: var(--bg-card-hover);
+                color: var(--text-primary);
+                font-size: 16px;
+                border-radius: 6px;
+            }
+
+            .track-diagram {
+                width: 100%;
+                height: 250px;
+                transition: transform 0.3s ease;
+            }
+
+            .track-legend {
+                display: flex;
+                justify-content: center;
+                gap: 20px;
+                margin-top: 10px;
+            }
+
+            .legend-item {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 12px;
+            }
+
+            .legend-color {
+                width: 12px;
+                height: 12px;
+                border-radius: 3px;
+            }
+
+            .legend-color.express {
+                background-color: var(--accent-red);
+            }
+
+            .legend-color.passenger {
+                background-color: var(--accent-blue);
+            }
+
+            .legend-color.freight {
+                background-color: var(--accent-green);
+            }
+
+            .station {
+                fill: var(--bg-card-hover);
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+                filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+            }
+
+            .station-inner {
+                fill: var(--accent-blue);
+                stroke: var(--text-secondary);
+                stroke-width: 1;
+            }
+
+            .junction-outer {
+                fill: var(--bg-card-hover);
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+            }
+
+            .junction-line {
+                stroke: var(--text-secondary);
+                stroke-width: 1.5;
+            }
+
+            .station-label {
+                fill: var(--text-primary);
+                font-size: 12px;
+                text-anchor: middle;
+                font-weight: 500;
+            }
+
+            .track {
+                stroke: var(--text-secondary);
+                stroke-width: 4;
+                stroke-linecap: round;
+            }
+
+            .track-secondary {
+                stroke: var(--text-secondary);
+                stroke-width: 2;
+                stroke-dasharray: 5, 5;
+                opacity: 0.7;
+            }
+
+            .train {
+                position: absolute;
+                width: 40px;
+                height: 20px;
+                border-radius: 6px;
+                transition: left 5s linear, top 0.5s ease, transform 0.3s ease;
+                cursor: pointer;
+                z-index: 10;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 10px;
+                font-weight: bold;
+                color: rgba(255, 255, 255, 0.9);
+                transform-origin: center;
+            }
+
+            .train:hover {
+                transform: scale(1.1);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+                z-index: 20;
+            }
+
+            .train.selected {
+                outline: 2px solid white;
+                outline-offset: 2px;
+            }
+
+            /* Train status animations */
+            .train-running {
+                animation: trainRunning 2s infinite;
+            }
+
+            .train-waiting {
+                animation: trainWaiting 2s infinite;
+            }
+
+            .train-halted {
+                opacity: 0.7;
+            }
+
+            @keyframes trainRunning {
+
+                0%,
+                100% {
+                    transform: translateX(0);
+                }
+
+                50% {
+                    transform: translateX(3px);
+                }
+            }
+
+            @keyframes trainWaiting {
+
+                0%,
+                100% {
+                    opacity: 1;
+                }
+
+                50% {
+                    opacity: 0.6;
+                }
+            }
+
+            .train-express {
+                background: var(--gradient-red);
+            }
+
+            .train-passenger {
+                background: var(--gradient-blue);
+            }
+
+            .train-freight {
+                background: var(--gradient-green);
+            }
+
+            .train::before {
+                content: '';
+                position: absolute;
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.8);
+                right: 4px;
+                top: 7px;
+            }
+
+            .panels {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 24px;
+            }
+
+            .panel {
+                background-color: var(--bg-card);
+                border-radius: var(--border-radius);
+                padding: 20px;
+                box-shadow: var(--shadow);
+            }
+
+            .panel-title {
+                margin-bottom: 16px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid var(--text-secondary);
+            }
+
+            .kpi-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+
+            .kpi-card {
+                background: linear-gradient(145deg, var(--bg-card), var(--bg-card-hover));
+                border-radius: var(--border-radius);
+                padding: 16px;
+                text-align: center;
+            }
+
+            .kpi-value {
+                font-size: 1.8rem;
+                font-weight: 700;
+                margin: 8px 0;
+            }
+
+            .kpi-label {
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+            }
+
+            .recommendation-card {
+                background: linear-gradient(145deg, var(--bg-card), var(--bg-card-hover));
+                border-radius: var(--border-radius);
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+
+            .recommendation-actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 8px;
+                margin-top: 12px;
+            }
+
+            .btn-accept {
+                background-color: var(--accent-green);
+            }
+
+            .btn-override {
+                background-color: var(--accent-red);
+            }
+
+            .log-entry {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 12px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid var(--bg-card-hover);
+            }
+
+            .log-time {
+                color: var(--text-secondary);
+                font-size: 0.8rem;
+                min-width: 60px;
+            }
+
+            .log-message {
+                flex: 1;
+            }
+
+            .train-popup {
+                position: absolute;
+                background-color: var(--bg-card);
+                border-radius: var(--border-radius);
+                padding: 16px;
+                box-shadow: var(--shadow);
+                z-index: 100;
+                min-width: 250px;
+                display: none;
+            }
+
+            .train-popup h3 {
+                margin-bottom: 12px;
+                border-bottom: 1px solid var(--text-secondary);
+                padding-bottom: 8px;
+            }
+
+            .train-popup-details {
+                margin-bottom: 16px;
+            }
+
+            .train-popup-details p {
+                margin-bottom: 8px;
+            }
+
+            .close-popup {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: none;
+                border: none;
+                color: var(--text-secondary);
+                font-size: 1.2rem;
+                cursor: pointer;
+            }
+
+            /* Responsive Styles */
+            @media (max-width: 768px) {
+                .panels {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="main-area">
+                <div class="top-bar">
+                    <div>
+                        <h1 class="section-name" id="current-section">AI Railway Flow Optimization: Nadiad – Anand
+                            Section</h1>
+                        <div class="datetime" id="datetime-display">Loading date and time...</div>
+                    </div>
+                    <div class="top-bar-actions">
+                        <button id="ai-simulate-btn">AI-Driven Simulation</button>
+                        <button id="reset-data-btn" style="background-color: var(--accent-teal);">Reset Data</button>
+                    </div>
+                </div>
+
+                <div class="visualization">
+                    <div class="visualization-header">
+                        <h3>Track Visualization (AI-Controlled)</h3>
+                        <div class="visualization-controls">
+                            <button id="zoom-in-btn" title="Zoom In">+</button>
+                            <button id="zoom-out-btn" title="Zoom Out">-</button>
+                            <button id="reset-view-btn" title="Reset View">↺</button>
+                        </div>
+                    </div>
+                    <svg class="track-diagram" id="track-diagram">
+                    </svg>
+                    <div id="trains-visualization">
+                    </div>
+                    <div class="track-legend">
+                        <div class="legend-item"><span class="legend-color express"></span>Express</div>
+                        <div class="legend-item"><span class="legend-color passenger"></span>Passenger</div>
+                        <div class="legend-item"><span class="legend-color freight"></span>Freight</div>
+                    </div>
+                </div>
+
+                <div class="panels">
+                    <div class="panel">
+                        <h3 class="panel-title">Key Performance Indicators</h3>
+                        <div class="kpi-grid">
+                            <div class="kpi-card">
+                                <div class="kpi-value" id="kpi-throughput">0</div>
+                                <div class="kpi-label">Trains/Hour</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-value" id="kpi-delay">0.0</div>
+                                <div class="kpi-label">Avg. Delay (min)</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-value" id="kpi-utilization">0%</div>
+                                <div class="kpi-label">Utilization</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-value" id="kpi-conflicts">0</div>
+                                <div class="kpi-label">Active Conflicts</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h3 class="panel-title">AI Optimization Recommendations</h3>
+                        <div id="recommendations-container">
+                            <p>Loading AI analysis...</p>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h3 class="panel-title">AI Event Log</h3>
+                        <div id="event-log-container">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="train-popup" id="train-popup">
+            <button class="close-popup" id="close-popup">×</button>
+            <h3 id="popup-train-number">Train 00000</h3>
+            <div class="train-popup-details" id="popup-train-details">
+            </div>
+        </div>
+
+        <script>
+            // Global variables
+            let trains = [];
+            let initialTrainData = []; // Store initial data for reset
+            let recommendations = [];
+            let eventLog = [];
+            let simulationRunning = false;
+            let selectedTrain = null;
+            let movementInterval = null;
+
+            // DOM Elements
+            const currentSectionDisplay = document.getElementById('current-section');
+            const datetimeDisplay = document.getElementById('datetime-display');
+            const trackDiagram = document.getElementById('track-diagram');
+            const trainsVisualization = document.getElementById('trains-visualization');
+            const kpiThroughput = document.getElementById('kpi-throughput');
+            const kpiDelay = document.getElementById('kpi-delay');
+            const kpiUtilization = document.getElementById('kpi-utilization');
+            const kpiConflicts = document.getElementById('kpi-conflicts');
+            const recommendationsContainer = document.getElementById('recommendations-container');
+            const eventLogContainer = document.getElementById('event-log-container');
+            const trainPopup = document.getElementById('train-popup');
+            const closePopupBtn = document.getElementById('close-popup');
+            const popupTrainNumber = document.getElementById('popup-train-number');
+            const popupTrainDetails = document.getElementById('popup-train-details');
+            const aiSimulateBtn = document.getElementById('ai-simulate-btn');
+            const resetDataBtn = document.getElementById('reset-data-btn');
+
+            // --- Core Functions: LOCAL DB/AI Integration ---
+
+            // Initialize the application
+            function init() {
+                updateDateTime();
+                setInterval(updateDateTime, 1000);
+                drawTrackDiagram();
+                loadInitialAITrainData();
+                setupEventListeners();
+                startAISimulation();
+            }
+
+            // Local Database: Load initial train data with conflicts and problems
+            function loadInitialAITrainData() {
+                // 12 trains with various conflicts/problems
+                initialTrainData = [
+                    {id: 1, number: '12928', type: 'express', priority: 'high', direction: 'up', status: 'running', position: 250, delayMinutes: 5, problem: "High-priority train running 5 min late, approaching Kanjari.", lastUpdate: "10:30:00"},
+                    {id: 2, number: '59048', type: 'passenger', priority: 'medium', direction: 'up', status: 'waiting', position: 100, delayMinutes: 0, problem: "Waiting at Nadiad for clearance. Potential conflict with 12928.", lastUpdate: "10:30:00"},
+                    {id: 3, number: '4321F', type: 'freight', priority: 'low', direction: 'down', status: 'halted', position: 750, delayMinutes: 10, problem: "Halted at Ode loop line due to signal issue (AI should hold it for priority trains).", lastUpdate: "10:28:00"},
+                    {id: 4, number: '19012', type: 'express', priority: 'high', direction: 'down', status: 'running', position: 800, delayMinutes: 2, problem: "Approaching Ode. Scheduled to meet 12928 near Uttarsanda (potential time collision).", lastUpdate: "10:30:00"},
+                    {id: 5, number: '22915', type: 'express', priority: 'high', direction: 'up', status: 'running', position: 400, delayMinutes: 15, problem: "Severe weather (heavy fog) reported ahead. Speed restricted to 30km/h.", lastUpdate: "10:25:00"},
+                    {id: 6, number: '69101', type: 'passenger', priority: 'medium', direction: 'down', status: 'running', position: 650, delayMinutes: 0, problem: "Running on time. Must be prioritized after Express trains.", lastUpdate: "10:29:00"},
+                    {id: 7, number: '8877F', type: 'freight', priority: 'low', direction: 'up', status: 'running', position: 550, delayMinutes: 0, problem: "Slow moving. Blocking track for faster trains behind it (22915).", lastUpdate: "10:29:00"},
+                    {id: 8, number: '12267', type: 'express', priority: 'high', direction: 'down', status: 'waiting', position: 900, delayMinutes: 45, problem: "Long delayed due to earlier track maintenance. Requires immediate re-slotting.", lastUpdate: "10:20:00"},
+                    {id: 9, number: '3344F', type: 'freight', priority: 'low', direction: 'up', status: 'running', position: 450, delayMinutes: 5, problem: "Freight train near Uttarsanda. Must be diverted to clear path for express.", lastUpdate: "10:30:00"},
+                    {id: 10, number: '59049', type: 'passenger', priority: 'medium', direction: 'down', status: 'running', position: 350, delayMinutes: 0, problem: "Running on the same track segment as train 12928 in the opposing direction (conflict zone).", lastUpdate: "10:30:00"},
+                    {id: 11, number: '9901X', type: 'freight', priority: 'low', direction: 'down', status: 'waiting', position: 900, delayMinutes: 0, problem: "Waiting at Anand. Only a single slot available after 12267 departs.", lastUpdate: "10:30:00"},
+                    {id: 12, number: '12952', type: 'express', priority: 'high', direction: 'up', status: 'running', position: 50, delayMinutes: 0, problem: "About to enter section. Needs clear path for optimal throughput.", lastUpdate: "10:30:00"}
+                ];
+
+                // Deep copy the initial data to the live 'trains' array
+                trains = JSON.parse(JSON.stringify(initialTrainData));
+
+                addEventLog('Local database loaded with 12 trains and initial conflicts.');
+                renderTrainsOnTrack();
+                updateKPIs();
+            }
+
+            // Reset Data to Initial State
+            function resetData() {
+                if (simulationRunning) {
+                    toggleAISimulation(); // Stop the simulation
+                }
+                // Reset trains and log
+                trains = JSON.parse(JSON.stringify(initialTrainData));
+                eventLog = [];
+                recommendations = [];
+                selectedTrain = null;
+
+                addEventLog('System data reset to initial state.');
+                renderTrainsOnTrack();
+                renderRecommendations();
+                updateKPIs();
+                startAISimulation(); // Restart the AI
+            }
+
+            // The AI-driven simulation/flow control
+            function startAISimulation() {
+                if (simulationRunning) {
+                    clearInterval(movementInterval);
+                }
+
+                simulationRunning = true;
+                aiSimulateBtn.textContent = 'AI Simulating... (Stop)';
+                aiSimulateBtn.style.backgroundColor = 'var(--accent-red)';
+
+                addEventLog('AI flow control initiated. Analyzing track conditions...');
+
+                if (movementInterval) clearInterval(movementInterval);
+
+                movementInterval = setInterval(() => {
+                    let allTrainsFinished = true;
+
+                    trains.forEach(train => {
+                        // AI DYNAMIC MOVEMENT LOGIC
+                        if (train.status === 'running') {
+                            const baseSpeed = getTrainSpeed(train.type);
+                            let currentSpeed = baseSpeed;
+
+                            // Slow down due to weather/problem
+                            if (train.problem && train.problem.includes('fog')) {
+                                currentSpeed = baseSpeed * 0.5; // Half speed for fog
+                            }
+
+                            if (train.direction === 'up') {
+                                train.position += currentSpeed;
+                                if (train.position >= 900) {
+                                    train.status = 'completed';
+                                    addEventLog(`Train ${train.number} ARRIVED at Anand`);
+                                }
+                            } else {
+                                train.position -= currentSpeed;
+                                if (train.position <= 100) {
+                                    train.status = 'completed';
+                                    addEventLog(`Train ${train.number} ARRIVED at Nadiad`);
+                                }
+                            }
+                        }
+
+                        if (train.status !== 'completed') {
+                            allTrainsFinished = false;
+                        }
+                    });
+
+                    // AI continuously monitors and provides recommendations
+                    generateRecommendations();
+
+                    // Update UI
+                    renderTrainsOnTrack();
+                    updateKPIs();
+
+                    if (allTrainsFinished) {
+                        clearInterval(movementInterval);
+                        simulationRunning = false;
+                        aiSimulateBtn.textContent = 'AI Simulation Finished';
+                        aiSimulateBtn.style.backgroundColor = 'var(--bg-card-hover)';
+                        addEventLog('AI-controlled flow completed all current trains.');
+                    }
+                }, 1000);
+            }
+
+            // Toggle the AI Simulation on/off
+            function toggleAISimulation() {
+                if (simulationRunning) {
+                    clearInterval(movementInterval);
+                    simulationRunning = false;
+                    aiSimulateBtn.textContent = 'Start AI Simulation';
+                    aiSimulateBtn.style.backgroundColor = 'var(--accent-blue)';
+                    addEventLog('AI flow control PAUSED by operator action.');
+                } else {
+                    startAISimulation();
+                }
+            }
+
+            // Mocks the AI Model generating recommendations (including What-If analysis)
+            function generateRecommendations() {
+                recommendations = [];
+                const runningTrains = trains.filter(t => t.status === 'running' && t.status !== 'completed');
+                let conflictsDetected = 0;
+
+                // --- AI Conflict Detection and What-If Scenarios ---
+
+                // 1. Head-on Conflict (Opposing trains on same segment)
+                const upTrains = runningTrains.filter(t => t.direction === 'up' && t.position < 850);
+                const downTrains = runningTrains.filter(t => t.direction === 'down' && t.position > 150);
+
+                upTrains.forEach(upTrain => {
+                    downTrains.forEach(downTrain => {
+                        const distance = downTrain.position - upTrain.position;
+                        // Check for conflict zone (trains are close and on a single main track segment)
+                        if (distance > 0 && distance < 300) {
+                            conflictsDetected++;
+                            const lowerPriorityTrain = (upTrain.priority === 'low' || upTrain.priority === 'medium') ? upTrain : downTrain;
+                            const higherPriorityTrain = (upTrain.priority === 'high' || downTrain.priority === 'high') ? (upTrain.priority === 'high' ? upTrain : downTrain) : null;
+
+                            if (higherPriorityTrain && lowerPriorityTrain) {
+                                recommendations.push({
+                                    id: Date.now() + Math.floor(Math.random() * 1000) + lowerPriorityTrain.id,
+                                    action: `Hold/Divert ${lowerPriorityTrain.type} ${lowerPriorityTrain.number}`,
+                                    justification: `CRITICAL CONFLICT with ${higherPriorityTrain.type} ${higherPriorityTrain.number} near ${getTrainLocation(lowerPriorityTrain.position)}. AI recommends holding low priority train at next available loop line to avoid collision/major delay.`,
+                                    impact: 'Safety Critical'
+                                });
+                            }
+                        }
+                    });
+                });
+
+                // 2. Overtaking/Blocking Conflict (Slow train ahead of fast train)
+                upTrains.filter(t => t.type === 'freight' && t.position > 200).forEach(slowTrain => {
+                    const fastTrainBehind = upTrains.find(fast =>
+                        fast.id !== slowTrain.id &&
+                        fast.type === 'express' &&
+                        slowTrain.position - fast.position < 150 &&
+                        slowTrain.position > fast.position
+                    );
+
+                    if (fastTrainBehind) {
+                        conflictsDetected++;
+                        recommendations.push({
+                            id: Date.now() + Math.floor(Math.random() * 1000) + slowTrain.id,
+                            action: `Divert Freight ${slowTrain.number} to Loop Line`,
+                            justification: `AI Optimization: Slow-moving freight is blocking Express ${fastTrainBehind.number}. Diverting to the loop line near ${getTrainLocation(slowTrain.position)} saves 10+ minutes in Express running time.`,
+                            impact: 'High'
+                        });
+                    }
+                });
+
+                // 3. Status/Delay Resolution (Long delayed trains or halted trains)
+                trains.filter(t => t.delayMinutes >= 45 && t.status === 'waiting').forEach(delayedTrain => {
+                    recommendations.push({
+                        id: Date.now() + Math.floor(Math.random() * 1000) + delayedTrain.id,
+                        action: `Prioritize Departure: Express ${delayedTrain.number}`,
+                        justification: `AI Alert: Train is 45+ minutes delayed. What-If analysis shows immediate departure minimally impacts other traffic but drastically improves service adherence.`,
+                        impact: 'Medium'
+                    });
+                });
+
+                trains.filter(t => t.status === 'halted').forEach(haltedTrain => {
+                    // AI checks if track is clear for the halted train to resume
+                    const isTrackClear = !runningTrains.some(t => t.direction === haltedTrain.direction && Math.abs(t.position - haltedTrain.position) < 150);
+                    if (isTrackClear) {
+                        recommendations.push({
+                            id: Date.now() + Math.floor(Math.random() * 1000) + haltedTrain.id,
+                            action: `Resume Journey: ${haltedTrain.number}`,
+                            justification: `AI Confirmation: Track ahead is clear. Immediate resumption advised to regain lost time.`,
+                            impact: 'Low'
+                        });
+                    }
+                });
+
+                // Update the KPI for conflicts
+                kpiConflicts.textContent = conflictsDetected;
+
+                renderRecommendations();
+            }
+
+            // --- Utility Functions ---
+
+            function setupEventListeners() {
+                aiSimulateBtn.addEventListener('click', toggleAISimulation);
+                resetDataBtn.addEventListener('click', resetData);
+                closePopupBtn.addEventListener('click', hideTrainPopup);
+                document.addEventListener('click', (e) => {
+                    if (!trainPopup.contains(e.target) && e.target.className !== 'train') {
+                        hideTrainPopup();
+                    }
+                });
+                document.getElementById('zoom-in-btn').addEventListener('click', zoomIn);
+                document.getElementById('zoom-out-btn').addEventListener('click', zoomOut);
+                document.getElementById('reset-view-btn').addEventListener('click', resetView);
+                // Delegation for recommendation buttons
+                document.getElementById('recommendations-container').addEventListener('click', handleRecommendationAction);
+            }
+
+            function handleRecommendationAction(e) {
+                if (!e.target.dataset.recId) return;
+
+                const recId = parseInt(e.target.dataset.recId);
+                const action = e.target.classList.contains('btn-accept') ? 'Accepted (AI Execute)' : 'Overridden (Manual)';
+
+                const recommendation = recommendations.find(r => r.id === recId);
+                if (recommendation) {
+                    addEventLog(`Operator Action: Recommendation "${recommendation.action}" ${action}`);
+
+                    // Remove recommendation from list
+                    recommendations = recommendations.filter(r => r.id !== recId);
+                    renderRecommendations();
+
+                    // Apply immediate effect to local DB (trains array)
+                    if (action.includes('Accepted')) {
+                        applyRecommendationEffect(recommendation);
+                        updateKPIs(true);
+                    } else {
+                        updateKPIs(false);
+                    }
+                }
+            }
+
+            function applyRecommendationEffect(recommendation) {
+                const trainNumberMatch = recommendation.action.match(/\d+[A-Z]?/);
+                const trainNumber = trainNumberMatch ? trainNumberMatch[0] : null;
+                const train = trains.find(t => t.number === trainNumber);
+
+                if (train) {
+                    if (recommendation.action.includes('Hold') || recommendation.action.includes('Divert')) {
+                        train.status = 'halted';
+                        train.problem = `AI-enforced hold/diversion at ${getTrainLocation(train.position)}.`;
+                    } else if (recommendation.action.includes('Prioritize Departure') || recommendation.action.includes('Resume Journey')) {
+                        train.status = 'running';
+                        train.problem = ''; // Problem resolved for now
+                    }
+                    renderTrainsOnTrack();
+                }
+            }
+
+            function updateDateTime() {
+                const now = new Date();
+                datetimeDisplay.textContent = now.toLocaleString();
+            }
+
+            function drawTrackDiagram() {
+                trackDiagram.setAttribute('viewBox', '0 0 1000 200');
+                const loopTracks = [
+                    {d: 'M 100 80 L 300 80', station: 'Nadiad-Kanjari'},
+                    {d: 'M 500 80 L 700 80', station: 'Uttarsanda-Ode'},
+                    {d: 'M 100 120 L 300 120', station: 'Nadiad-Kanjari'},
+                    {d: 'M 700 120 L 900 120', station: 'Ode-Anand'}
+                ];
+
+                loopTracks.forEach(track => {
+                    const loopTrack = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    loopTrack.setAttribute('d', track.d);
+                    loopTrack.setAttribute('class', 'track-secondary');
+                    loopTrack.setAttribute('data-station', track.station);
+                    trackDiagram.appendChild(loopTrack);
+                });
+
+                const junctionPositions = [100, 300, 500, 700, 900];
+                for (let i = 0; i < junctionPositions.length - 1; i++) {
+                    const trackSegment = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    trackSegment.setAttribute('d', `M ${junctionPositions[i]} 100 L ${junctionPositions[i + 1]} 100`);
+                    trackSegment.setAttribute('class', 'track');
+                    trackDiagram.appendChild(trackSegment);
+                }
+
+                const connections = [
+                    {d: 'M 100 100 C 100 80, 100 80, 120 80', type: 'main-to-loop'},
+                    {d: 'M 280 80 C 300 80, 300 80, 300 100', type: 'loop-to-main'},
+                    {d: 'M 500 100 C 500 80, 500 80, 520 80', type: 'main-to-loop'},
+                    {d: 'M 680 80 C 700 80, 700 80, 700 100', type: 'loop-to-main'},
+                    {d: 'M 100 100 C 100 120, 100 120, 120 120', type: 'main-to-loop'},
+                    {d: 'M 280 120 C 300 120, 300 120, 300 100', type: 'loop-to-main'},
+                    {d: 'M 700 100 C 700 120, 700 120, 720 120', type: 'main-to-loop'},
+                    {d: 'M 880 120 C 900 120, 900 120, 900 100', type: 'loop-to-main'}
+                ];
+
+                connections.forEach(conn => {
+                    const connection = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    connection.setAttribute('d', conn.d);
+                    connection.setAttribute('class', 'track-secondary');
+                    connection.setAttribute('data-type', conn.type);
+                    trackDiagram.appendChild(connection);
+                });
+
+                const stations = [
+                    {name: 'Nadiad', x: 100, isJunction: true},
+                    {name: 'Kanjari', x: 300, isJunction: true},
+                    {name: 'Uttarsanda', x: 500, isJunction: false},
+                    {name: 'Ode', x: 700, isJunction: true},
+                    {name: 'Anand', x: 900, isJunction: true}
+                ];
+
+                stations.forEach(station => {
+                    if (station.isJunction) {
+                        const junctionOuter = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        junctionOuter.setAttribute('cx', station.x);
+                        junctionOuter.setAttribute('cy', 100);
+                        junctionOuter.setAttribute('r', 25);
+                        junctionOuter.setAttribute('class', 'station junction-outer');
+                        trackDiagram.appendChild(junctionOuter);
+
+                        const junctionInner = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        junctionInner.setAttribute('cx', station.x);
+                        junctionInner.setAttribute('cy', 100);
+                        junctionInner.setAttribute('r', 15);
+                        junctionInner.setAttribute('class', 'station-inner');
+                        trackDiagram.appendChild(junctionInner);
+
+                        const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line1.setAttribute('x1', station.x - 15);
+                        line1.setAttribute('y1', 85);
+                        line1.setAttribute('x2', station.x + 15);
+                        line1.setAttribute('y2', 115);
+                        line1.setAttribute('class', 'junction-line');
+                        trackDiagram.appendChild(line1);
+
+                        const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line2.setAttribute('x1', station.x - 15);
+                        line2.setAttribute('y1', 115);
+                        line2.setAttribute('x2', station.x + 15);
+                        line2.setAttribute('y2', 85);
+                        line2.setAttribute('class', 'junction-line');
+                        trackDiagram.appendChild(line2);
+                    } else {
+                        const stationRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        stationRect.setAttribute('x', station.x - 30);
+                        stationRect.setAttribute('y', 85);
+                        stationRect.setAttribute('width', 60);
+                        stationRect.setAttribute('height', 30);
+                        stationRect.setAttribute('class', 'station');
+                        stationRect.setAttribute('data-station', station.name);
+                        trackDiagram.appendChild(stationRect);
+                    }
+
+                    const stationText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    stationText.setAttribute('x', station.x);
+                    stationText.setAttribute('y', 150);
+                    stationText.setAttribute('class', 'station-label');
+                    stationText.textContent = station.name;
+                    trackDiagram.appendChild(stationText);
+
+                    if (station.isJunction) {
+                        const junctionIndicator = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        junctionIndicator.setAttribute('x', station.x);
+                        junctionIndicator.setAttribute('y', 165);
+                        junctionIndicator.setAttribute('class', 'station-label');
+                        junctionIndicator.setAttribute('font-size', '10');
+                        junctionIndicator.textContent = '(Junction)';
+                        trackDiagram.appendChild(junctionIndicator);
+                    }
+                });
+            }
+
+            function renderTrainsOnTrack() {
+                trainsVisualization.innerHTML = '';
+
+                trains.forEach(train => {
+                    if (train.status === 'completed') return;
+
+                    const trainElement = document.createElement('div');
+                    trainElement.className = `train train-${train.type} ${selectedTrain === train.id ? 'selected' : ''}`;
+                    trainElement.dataset.trainId = train.id;
+                    trainElement.style.left = `${train.position}px`;
+                    trainElement.style.top = train.direction === 'up' ? '85px' : '105px';
+                    trainElement.textContent = train.number;
+
+                    trainElement.title = `${capitalizeFirstLetter(train.type)} ${train.number} (${capitalizeFirstLetter(train.priority)})`;
+
+                    trainElement.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectTrain(train.id);
+                        const trainRect = trainElement.getBoundingClientRect();
+                        showTrainPopup(train, trainRect.left + trainRect.width, trainRect.top + 20);
+                    });
+
+                    if (train.status === 'running') {
+                        trainElement.classList.add('train-running');
+                    } else if (train.status === 'waiting') {
+                        trainElement.classList.add('train-waiting');
+                    } else if (train.status === 'halted') {
+                        trainElement.classList.add('train-halted');
+                    }
+
+                    trainsVisualization.appendChild(trainElement);
+                });
+            }
+
+            function renderRecommendations() {
+                recommendationsContainer.innerHTML = '';
+
+                if (recommendations.length === 0) {
+                    recommendationsContainer.innerHTML = '<p>No critical conflicts or optimization opportunities detected by AI at this time.</p>';
+                    return;
+                }
+
+                recommendations.forEach(rec => {
+                    const recCard = document.createElement('div');
+                    recCard.className = 'recommendation-card';
+
+                    recCard.innerHTML = `
+                    <div><strong>${rec.action}</strong></div>
+                    <div>${rec.justification}</div>
+                    <div class="recommendation-actions">
+                        <button class="btn-accept" data-rec-id="${rec.id}">Accept</button>
+                        <button class="btn-override" data-rec-id="${rec.id}">Override</button>
+                    </div>
+                `;
+
+                    recommendationsContainer.appendChild(recCard);
+                });
+            }
+
+            function renderEventLog() {
+                eventLogContainer.innerHTML = '';
+
+                if (eventLog.length === 0) {
+                    eventLogContainer.innerHTML = '<p>System initialized.</p>';
+                    return;
+                }
+
+                eventLog.forEach(entry => {
+                    const logEntry = document.createElement('div');
+                    logEntry.className = 'log-entry';
+
+                    logEntry.innerHTML = `
+                    <div class="log-time">${entry.time}</div>
+                    <div class="log-message">${entry.message}</div>
+                `;
+
+                    eventLogContainer.appendChild(logEntry);
+                });
+            }
+
+            function selectTrain(trainId) {
+                selectedTrain = trainId;
+            }
+
+            function showTrainPopup(train, x, y) {
+                popupTrainNumber.textContent = `Train ${train.number}`;
+
+                popupTrainDetails.innerHTML = `
+                <p><strong>Type:</strong> ${capitalizeFirstLetter(train.type)}</p>
+                <p><strong>Priority:</strong> ${capitalizeFirstLetter(train.priority)}</p>
+                <p><strong>Direction:</strong> ${train.direction === 'up' ? 'Up (Nadiad → Anand)' : 'Down (Anand → Nadiad)'}</p>
+                <p><strong>Status:</strong> ${capitalizeFirstLetter(train.status)}</p>
+                <p><strong>Current Location:</strong> ${getTrainLocation(train.position)}</p>
+                <p><strong>Delay:</strong> ${train.delayMinutes} min</p>
+                <p><strong>Problem:</strong> ${train.problem || 'None'}</p>
+            `;
+
+                trainPopup.style.left = `${x}px`;
+                trainPopup.style.top = `${y}px`;
+                trainPopup.style.display = 'block';
+            }
+
+            function hideTrainPopup() {
+                trainPopup.style.display = 'none';
+            }
+
+            function addEventLog(message) {
+                const now = new Date();
+                const time = now.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+
+                eventLog.unshift({
+                    time,
+                    message,
+                    type: 'status'
+                });
+
+                if (eventLog.length > 20) {
+                    eventLog.pop();
+                }
+
+                renderEventLog();
+            }
+
+            function updateKPIs(improved = false) {
+                const runningTrains = trains.filter(t => t.status === 'running').length;
+                const totalTrains = trains.filter(t => t.status !== 'completed').length;
+                const totalDelay = trains.filter(t => t.status !== 'completed').reduce((sum, t) => sum + (t.delayMinutes || 0), 0);
+
+                let throughput = Math.floor(Math.random() * 5) + 10;
+                if (improved) throughput += 1;
+
+                let avgDelay = totalTrains > 0 ? parseFloat((totalDelay / totalTrains).toFixed(1)) : 0;
+                if (improved) avgDelay = parseFloat((avgDelay * 0.9).toFixed(1)); // 10% improvement
+
+                let utilization = totalTrains > 0 ? Math.floor((runningTrains / totalTrains) * 100) : 0;
+                if (improved) utilization = Math.min(100, utilization + 5);
+
+                const conflicts = parseInt(kpiConflicts.textContent) || 0;
+
+                kpiThroughput.textContent = throughput;
+                kpiDelay.textContent = avgDelay;
+                kpiUtilization.textContent = `${utilization}%`;
+                // kpiConflicts is set in generateRecommendations()
+            }
+
+            function getTrainSpeed(type) {
+                switch (type) {
+                    case 'express': return 15;
+                    case 'passenger': return 10;
+                    case 'freight': return 5;
+                    default: return 10;
+                }
+            }
+
+            function getTrainLocation(position) {
+                if (position <= 200) return 'Nadiad';
+                if (position <= 400) return 'Kanjari';
+                if (position <= 600) return 'Uttarsanda';
+                if (position <= 800) return 'Ode';
+                return 'Anand';
+            }
+
+            function capitalizeFirstLetter(string) {
+                return string.charAt(0).toUpperCase() + string.slice(1);
+            }
+
+            let currentZoom = 1;
+            const zoomStep = 0.1;
+            const maxZoom = 2;
+            const minZoom = 0.5;
+            function zoomIn() {if (currentZoom < maxZoom) {currentZoom += zoomStep; applyZoom();} }
+            function zoomOut() {if (currentZoom > minZoom) {currentZoom -= zoomStep; applyZoom();} }
+            function resetView() {currentZoom = 1; applyZoom();}
+            function applyZoom() {trackDiagram.style.transform = `scale(${currentZoom})`; trackDiagram.style.transformOrigin = 'center center';}
+
+            window.addEventListener('load', init);
+        </script>
+    </body>
+
+</html>
